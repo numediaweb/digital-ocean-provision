@@ -1,0 +1,17 @@
+---
+- name: Alias bin/console
+  lineinfile: dest=~/.bashrc line='alias c="bin/console"'
+  become: true
+  become_user: "{{ config.digitalocean.master_user }}"
+
+- name: Alias cd use also symlink
+  lineinfile: dest=~/.bashrc line='alias cd="cd -P"'
+  become: true
+  become_user: "{{ config.digitalocean.master_user }}"
+
+- name: Alias cd {{ item.alias }}
+  lineinfile: dest=~/.bashrc line='alias cd-{{ item.alias }}="cd /var/www/{{ item.projectFolder }}"'
+  with_items: "{{droplet.vhosts}}"
+  when: item.alias is defined
+  become: true
+  become_user: "{{ config.digitalocean.master_user }}"

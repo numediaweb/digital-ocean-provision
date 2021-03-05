@@ -1,0 +1,21 @@
+---
+- name: Ensure Apache is installed
+  apt: "name={{ item }} state=present"
+  with_items:
+    - apache2
+    - apache2-utils
+  become: yes
+
+- name: Creates default web directoris and allow
+  file: path={{ item }} state=directory owner={{ master_user }} group={{ master_user_group }}
+  with_items:
+    - /var/www
+    - /var/www/html
+  become: yes
+  become_user: root
+
+- include_tasks: tasks/extensions.yml
+
+- include_tasks: tasks/modules.yml
+
+- include_tasks: tasks/vhosts.yml

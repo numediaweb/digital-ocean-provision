@@ -1,0 +1,30 @@
+---
+- name: Enable modules
+  command: a2enmod {{ item }} creates=/etc/apache2/mods-enabled/{{ item }}.load
+  with_items:
+    - rewrite
+    - php{{ config.php_version }}
+    - autoindex
+    - ssl
+    - proxy
+    - proxy_http
+    - expires
+  become: yes
+  notify:
+  - apache-restart
+
+- name: Create lock file
+  template:
+    src: mutex-file.conf.j2
+    dest: "/etc/apache2/conf-available/mutex-file.conf"
+  notify:
+    - apache-restart
+  become: yes
+
+- name: Enable Mutex configuration file
+  command: a2enconf {{ item }}
+  with_items:
+    - mutex-file.conf
+  become: yes
+  notify:
+  - apache-restart

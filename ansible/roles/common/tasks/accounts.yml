@@ -1,0 +1,39 @@
+---
+- name: Create master user group
+  group:
+    name: "{{ config.digitalocean.master_user_group }}"
+    state: present
+  become: yes
+
+- name: Create master user
+  user:
+    name: "{{ config.digitalocean.master_user }}"
+    password: "{{ config.digitalocean.master_user_password_encrypted }}"
+    create_home: yes
+    group: "{{ config.digitalocean.master_user_group }}"
+    groups:
+      - "{{ config.digitalocean.master_user_group }}"
+      - admin
+      - adm
+      - sudo
+      - root
+      - www-data
+    shell: /bin/bash
+    comment: "{{ config.digitalocean.master_user }}"
+  become: yes
+
+- name: Add authorized keys for master user
+  authorized_key:
+    user: "{{ config.digitalocean.master_user }}"
+    key: "{{ lookup('file', 'ssh_keys/' + item ) }}"
+    state: present
+    exclusive: yes
+  with_items: "{{ config.digitalocean.public_keys }}"
+  become: yes
+
+- name: Add master user to sudoers
+  lineinfile:
+    dest: /etc/sudoers
+    regexp: "{{ config.digitalocean.master_user  }} ALL"
+    line: "{{ config.digitalocean.master_user }} ALL=(ALL) ALL"
+    state: present

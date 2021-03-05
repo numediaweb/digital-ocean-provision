@@ -1,0 +1,57 @@
+<VirtualHost *:80>
+    ServerName {{ item.item.host }}
+    ServerAlias www.{{ item.item.host }}
+
+{% if item.item.directory is defined %}
+    DocumentRoot {{ item.item.directory }}
+    <Directory {{ item.item.directory }}>
+{% else %}
+    DocumentRoot /var/www/{{ item.item.projectFolder}}
+    <Directory /var/www/{{ item.item.projectFolder}}>
+{% endif %}
+        Options Indexes FollowSymLinks MultiViews
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/{{ item.item.host }}_error.log
+    CustomLog ${APACHE_LOG_DIR}/{{ item.item.host }}_access.log combined
+</VirtualHost>
+
+<IfDefine IgnoreBlockComment>
+{% for host in ssl_enabled_hosts.results %}
+{% if host.stat.exists %}
+host stat exists
+{{ item.item.host }}
+{% endif %}{% endfor %}
+</IfDefine>
+
+{# Set up SSL VirtualHosts #}
+{% if item.item.ssl | default(true) %}
+{% for host in ssl_enabled_hosts.results %}
+{% if host.stat.exists and item.item.host in host.stat.path %}
+<VirtualHost *:443>
+    ServerName {{ item.item.host }}
+    ServerAlias www.{{ item.item.host }}
+
+    SSLEngine On
+    SSLCertificateFile /etc/letsencrypt/live/{{ item.item.host }}/cert.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/{{ item.item.host }}/privkey.pem
+    SSLCertificateChainFile /etc/letsencrypt/live/{{ item.item.host }}/chain.pem
+
+{% if item.item.directory is defined %}
+    DocumentRoot {{ item.item.directory }}
+    <Directory {{ item.item.directory }}>
+{% else %}
+    DocumentRoot /var/www/{{ item.item.projectFolder}}
+    <Directory /var/www/{{ item.item.projectFolder}}>
+{% endif %}
+        Options Indexes FollowSymLinks MultiViews
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/{{ item.item.host }}_error.log
+    CustomLog ${APACHE_LOG_DIR}/{{ item.item.host }}_access.log combined
+</VirtualHost>
+{% endif %}{% endfor %}{% endif %}

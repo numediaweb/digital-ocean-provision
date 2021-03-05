@@ -1,0 +1,43 @@
+### Project folders & files to ignore
+.vagrant
+config-custom.yml
+!/ansible/roles/common/files/ssh_keys/
+/ansible/roles/common/files/ssh_keys/*
+!ansible/roles/common/files/ssh_keys/.gitkeep
+.gitmodules
+ca_key.key
+root_certificate_authority.pem
+
+### IntelliJ / PhpStorm / SSH
+.idea/*
+*.ipr
+*.iml
+*.iws
+*.pub
+
+
+### Numerous always-ignore extensions
+*.diff
+*.err
+*.orig
+*.log
+*.rej
+*.swo
+*.swp
+*.zip
+*.vi
+*~
+
+### OS or Editor folders
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+.cache
+.project
+.settings
+.tmproj
+*.esproj
+nbproject
+*.sublime-project
+*.sublime-workspace

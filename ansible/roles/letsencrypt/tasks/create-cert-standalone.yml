@@ -1,0 +1,17 @@
+---
+- name: Stop services to allow certbot to generate a cert.
+  service:
+    name: "{{ item }}"
+    state: stopped
+  with_items: "{{ certbot_create_standalone_stop_services }}"
+
+- name: Generate new certificates
+  shell: "{{ certbot_create_command }}"
+  with_items: "{{droplet.vhosts}}"
+  when: item.ssl|default(true)|bool == true
+
+- name: Start services after cert has been generated.
+  service:
+    name: "{{ item }}"
+    state: started
+  with_items: "{{ certbot_create_standalone_stop_services }}"

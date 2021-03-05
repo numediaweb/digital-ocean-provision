@@ -1,0 +1,6 @@
+---
+- name: Install VLC
+  apt: pkg={{ item }} state=latest
+  become: yes
+  with_items:
+    - vlc

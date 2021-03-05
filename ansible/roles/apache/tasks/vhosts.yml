@@ -1,0 +1,114 @@
+- name: Clean previous enabled Apache virtual hosts
+  shell: rm -rf /etc/apache2/sites-enabled/*.*
+  become: yes
+
+- name: Clean previous available Apache virtual hosts
+  shell: rm -rf /etc/apache2/sites-available/*.*
+  become: yes
+
+#- debug:
+#    msg: "List of all hosts {{ item }}"
+#  with_items: "{{ droplet.vhosts }}"
+
+- name: List projects with SLL keys
+  stat: path=/etc/letsencrypt/live/{{item.host}}/cert.pem
+  register: ssl_enabled_hosts
+  with_items: "{{droplet.vhosts}}"
+  become: yes
+
+- debug:
+    msg: "See SSL hosts: {{ ssl_enabled_hosts }}"
+
+- name: Create redirect virtual hosts
+  template:
+    src: redirect_virtualhost.conf.j2
+    dest: "/etc/apache2/sites-available/{{ item.host }}.conf"
+  notify:
+    - apache-restart
+  become: yes
+  with_items: "{{droplet.vhosts}}"
+  when: 'item.isRedirect is defined and item.isRedirect | default(false)'
+
+- name: Creates symfony directories
+  file:
+    path: /var/www/{{item.projectFolder}}/web
+    state: directory
+    owner: "{{ master_user }}"
+    group: "{{ master_user_group }}"
+    mode: 0755
+  with_items: "{{droplet.vhosts}}"
+  when: item.framework == "symfony"
+
+- name: List available Symfony project folders
+  stat: path=/var/www/{{item.projectFolder}}/web
+  register: symfony_projects
+  with_items: "{{droplet.vhosts}}"
+  when: item.framework == "symfony"
+
+- name: Create virtual hosts for symfony applications
+  template:
+    src: symfony_virtualhost.conf.j2
+    dest: "/etc/apache2/sites-available/{{ item.item.host }}.conf"
+  notify:
+    - apache-restart
+  become: yes
+  with_items: "{{ symfony_projects.results }}"
+  when: item.stat is defined and item.stat.exists == true
+
+- name: Creates other framework directories
+  file:
+    path: "{{item.directory}}"
+    state: directory
+    owner: "{{ master_user }}"
+    group: "{{ master_user_group }}"
+    mode: 0755
+  with_items: "{{droplet.vhosts}}"
+  when: item.framework == "none" and item.directory is defined
+
+- name: List available unknown framework project folders
+  stat: path={{item.directory}}
+  register: unknown_framework_projects
+  with_items: "{{droplet.vhosts}}"
+  when: item.framework == "none" and item.directory is defined
+
+- name: Create virtual hosts for unknown framework applications
+  template:
+    src: default_virtualhost.conf.j2
+    dest: "/etc/apache2/sites-available/{{ item.item.host }}.conf"
+  notify:
+    - apache-restart
+  become: yes
+  with_items: "{{ unknown_framework_projects.results }}"
+  when: item.stat is defined and item.stat.exists == true
+
+- name: Prepare list of all available projects
+  set_fact:
+    projects: "{{symfony_projects.results}} + {{ unknown_framework_projects.results }}"
+
+- name: Enabled Apache virtual hosts
+  command: a2ensite {{ item.item.host }}
+  args:
+      creates: /etc/apache2/sites-enabled/{{ item.item.host }}.conf
+  with_items: "{{ projects }}"
+  become: yes
+  notify:
+    - apache-reload
+  when: item.stat is defined and item.stat.exists == true and item.item is defined
+
+- name: Enabled Apache virtual hosts for redirects
+  command: a2ensite {{ item.host }}
+  args:
+      creates: /etc/apache2/sites-enabled/{{ item.host }}.conf
+  with_items: "{{droplet.vhosts}}"
+  become: yes
+  notify:
+    - apache-reload
+  when: 'item.isRedirect is defined and item.isRedirect | default(false)'
+
+- name: change "/var/www" dir owner and group
+  file:
+    path: "/var/www"
+    owner: "{{ config.digitalocean.master_user | default('www-data') }}"
+    group: "www-data"
+    recurse: true
+  become: yes

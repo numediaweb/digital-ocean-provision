@@ -1,0 +1,16 @@
+---
+- name: Install Certbot with package.
+  package: "name={{ certbot_package }} state=present"
+
+- name: Set Certbot script variable with package
+  set_fact:
+    certbot_script: "{{ certbot_package }}"
+
+- name: Add certbot repository
+  apt_repository:
+    repo: 'ppa:certbot/certbot'
+
+- name: Install Certbot's Apache package
+  apt:
+    name: python-certbot-apache
+    state: present

@@ -1,0 +1,80 @@
+---
+- name: Update apt cache
+  apt: update_cache=yes cache_valid_time=3600
+  become: yes
+
+#- name: Upgrade APT to the latest packages
+#  apt: upgrade=safe
+#  become: yes
+
+- name: Install packages
+  apt: pkg={{ item }} state=latest
+  become: yes
+  with_items:
+    - sudo
+    - aptitude
+    - bash-completion
+    - python-pycurl
+    - git
+    - htop
+    - tree
+    - vim
+    - curl
+    - zip
+    - rsync
+    - wget
+    - ant
+    - tmux
+    - dos2unix
+    - ufw
+    - fail2ban
+    - unattended-upgrades
+    - logwatch
+    - acl
+
+- name: Adjust APT update intervals
+  copy: src=apt_periodic dest=/etc/apt/apt.conf.d/10periodic
+  become: yes
+
+- name: Copy tmux config
+  template: src=tmux.conf dest=~/.tmux.conf
+
+- name: Ensure NTP is installed
+  apt: pkg=ntp state=present
+  tags: ntp
+  become: yes
+
+- name: Ensure NTP is running and enabled
+  service: name=ntp state=started enabled=yes
+  tags: ntp
+  become: yes
+
+- include_tasks: tasks/accounts.yml
+
+- name: Make sure ~/bin exists
+  file:
+    path: ~/bin
+    state: directory
+  become: true
+  become_user: "{{ config.digitalocean.master_user }}"
+
+- name: Add a ~/bin to PATH
+  lineinfile: dest=~/.bashrc line='PATH="$HOME/bin:$PATH"'
+  become: true
+  become_user: "{{ config.digitalocean.master_user }}"
+
+- name: Copy common files to ~/bin
+  copy: src={{ item }} dest=~/bin/  mode=755
+  with_fileglob:
+    - bin/*
+  become: true
+  become_user: "{{ config.digitalocean.master_user }}"
+
+- name: Ensure symlinks for utilities exist
+  file: src=~/bin/{{ item | basename | regex_replace('(\w+(?:\.\w+)*$)', '\1') }} dest=~/bin/{{ item | basename | regex_replace('\.sh','') }} mode=755 state=link force=true
+  with_fileglob:
+    - bin/*
+  become: true
+  become_user: "{{ config.digitalocean.master_user }}"
+
+- include_tasks: tasks/security.yml

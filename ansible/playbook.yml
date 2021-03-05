@@ -1,0 +1,22 @@
+---
+- name: Ansible => Apply common configuration to all nodes
+  hosts: all
+  become: yes
+  vars:
+    roles_enabled: "{{roles_enabled}}"
+    config: "{{config}}"
+    droplet: "{{droplet}}"
+
+  roles:
+    - { role: common, when: "'common' in roles_enabled" }
+    - { role: bashrc_alias, when: "'bashrc_alias' in roles_enabled" }
+    - { role: php, when: "'php' in roles_enabled" }
+    - { role: apache, when: "'apache' in roles_enabled" }
+    - { role: composer, when: "'composer' in roles_enabled" }
+    - { role: letsencrypt, when: "'letsencrypt' in roles_enabled" }
+    - { role: mysql, when: "'mysql' in roles_enabled" }
+    - { role: wordpress, when: "'wordpress' in roles_enabled" }
+    - { role: jenkins, when: "'jenkins' in roles_enabled" }
+    - { role: wkhtmltopdf, when: "'wkhtmltopdf' in roles_enabled" }
+    - { role: vlc, when: "'vlc' in roles_enabled" }
+    - { role: monit, when: "'monit' in roles_enabled" }

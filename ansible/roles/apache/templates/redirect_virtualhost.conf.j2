@@ -1,0 +1,13 @@
+<VirtualHost *:80>
+    ServerName {{ item.host }}
+    ServerAlias www.{{ item.host }}
+
+    RedirectPermanent / {{ item.redirectTo }}
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName {{ item.host }}
+    ServerAlias www.{{ item.host }}
+
+    RedirectPermanent / {{ item.redirectTo }}
+</VirtualHost>

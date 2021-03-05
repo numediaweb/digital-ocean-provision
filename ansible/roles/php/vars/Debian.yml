@@ -1,0 +1,63 @@
+---
+__php_packages:
+  - libapache2-mod-php
+#  - libapache2-mod-php{{ config.php_version }}
+  - libpcre3-dev
+  - php{{ config.php_version }}
+  - php{{ config.php_version }}-apcu
+  - php{{ config.php_version }}-cli
+  - php{{ config.php_version }}-common
+  - php{{ config.php_version }}-curl
+  - php{{ config.php_version }}-dev
+  - php{{ config.php_version }}-fpm
+  - php{{ config.php_version }}-gd
+  - php{{ config.php_version }}-gmp
+  - php{{ config.php_version }}-imap
+  - php{{ config.php_version }}-intl
+  - php{{ config.php_version }}-json
+  - php{{ config.php_version }}-mbstring
+  - php{{ config.php_version }}-mysql
+  - php{{ config.php_version }}-opcache
+  - php{{ config.php_version }}-sqlite3
+  - php{{ config.php_version }}-xml
+  - php{{ config.php_version }}-yaml
+  - php{{ config.php_version }}-zip
+
+__php_webserver_daemon: "apache2"
+
+# Vendor-specific configuration paths on Debian/Ubuntu make my brain asplode.
+__php_conf_paths:
+  - /etc/php/{{ config.php_version }}/fpm
+  - /etc/php/{{ config.php_version }}/apache2
+  - /etc/php/{{ config.php_version }}/cli
+
+__php_extension_conf_paths:
+  - /etc/php/{{ config.php_version }}/fpm/conf.d
+  - /etc/php/{{ config.php_version }}/apache2/conf.d
+  - /etc/php/{{ config.php_version }}/cli/conf.d
+
+__php_apc_conf_filename: 20-apcu.ini
+__php_opcache_conf_filename: 10-opcache.ini
+__php_fpm_daemon: php{{ config.php_version }}-fpm
+__php_fpm_conf_path: "/etc/php/{{ config.php_version }}/fpm"
+__php_fpm_pool_conf_path: "{{ __php_fpm_conf_path }}/pool.d/www.conf"
+
+__php_fpm_pool_user: www-data
+__php_fpm_pool_group: www-data
+
+#
+## from https://github.com/geerlingguy/ansible-role-php-versions
+#
+__php_mysql_package: "php{{ config.php_version }}-mysql"
+__php_redis_package: "php{{ config.php_version }}-redis"
+__php_memcached_package: "php{{ config.php_version }}-memcached"
+__php_pgsql_package: "php{{ config.php_version }}-pgsql"
+
+__php_tideways_module_path: "/usr/lib/php/{{ config.php_version }}/modules"
+__php_uploadprogress_module_path: "/usr/lib/php/{{ config.php_version }}/modules"
+__php_xdebug_module_path: "/usr/lib/php/{{ config.php_version }}/modules"
+__php_xhprof_module_path: "/usr/lib/php/{{ config.php_version }}/modules"
+
+php_versions_debian:
+  - php7.2-common
+  - php7.3-common

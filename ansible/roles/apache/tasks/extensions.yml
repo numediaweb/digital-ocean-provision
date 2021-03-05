@@ -1,0 +1,101 @@
+---
+#- name: Add PHP PPA
+#  apt_repository: repo='ppa:ondrej/php'
+#  become: yes
+
+# todo: fatal: [talmut-com]: FAILED! => {"changed": false, "msg": "Specified path /usr/bin/php7.2 does not exist"}
+#- name: Set correct php version
+#  alternatives:
+#    name: php
+#    path: "/usr/bin/php{{ config.php_version }}"
+
+# todo: fix this version missmatch!
+#- name: Install Apache/PHP extensions
+#  apt: pkg={{ item }} state=present
+#  become: yes
+#  with_items:
+#    - libapache2-mod-php7.1
+#    - libapache2-mod-php
+#    - php7.1-dev
+#    - php7.1-cli
+#    - php7.1-curl
+#    - php7.1-gd
+#    - php7.2-mysql
+#    - php7.1-mysql
+#    - php7.1-mbstring
+#    - php7.1-simplexml
+#    - php7.1-xml
+#    - php7.1-zip
+#    - php7.1-apcu
+#    - php7.1-mcrypt
+#    - php7.1-sqlite3
+#    - php7.1-intl
+#    - php7.1-soap
+#    - php7.1-imap
+#    - php7.1-bcmath
+#    - php7.1-tidy
+#    - php7.0-xdebug
+#    - php7.1-xsl
+#    - php7.1-dom
+#    - php7.1-zip
+#    - php7.2-xml
+#    - php7.2-mbstring
+#    - php-xdebug
+#    - gnupg
+#    - libgpgme11
+#    - libgpgme11-dev
+#    - libgpg-error-dev
+#    - libassuan-dev
+#    - php-pear
+#    - php-ssh2
+#    - libxml2-dev
+#    - php-curl
+
+#- name: Install gnupg
+#  shell: ~/bin/install_gnupg
+#  notify:
+#    - apache-restart
+
+#- name:  Copy gnupg.so extensions
+#  copy: src=templates/{{ item }}/ dest=/usr/lib/php/{{ item }}
+#  with_items:
+#    - 20160303
+#  become: yes
+
+- name: Set /var/lock/apache2 owner
+  file: path=/var/lock/apache2 recurse=yes state=directory owner={{ master_user }} group={{ master_user_group }}
+  become: yes
+
+- name: Ensure Apache envvars file exists
+  copy:
+    src: envvars
+    dest: /etc/apache2/envvars
+    force: no
+  become: yes
+
+- name: Set Apache user and group
+  lineinfile: >
+    dest=/etc/apache2/envvars
+    regexp="{{ item.key }}"
+    line="{{ item.value }}"
+    state=present
+  with_items:
+   - { key: "^export APACHE_RUN_USER=", value: "export APACHE_RUN_USER={{ master_user }}" }
+   - { key: "^export APACHE_RUN_GROUP=", value: "export APACHE_RUN_GROUP={{ master_user_group }}" }
+  notify:
+   - apache-restart
+  become: yes
+
+- name: Set 'ServerName' directive globally
+  lineinfile: >
+    dest=/etc/apache2/apache2.conf
+    line="{{ item }}"
+  with_items:
+   - "ServerName localhost"
+  notify:
+   - apache-restart
+  become: yes
+
+#- name: php.ini - Change max upload size to 15M
+#  replace: dest=/etc/php/7.1/apache2/php.ini regexp='^upload_max_filesize = .*$' replace='upload_max_filesize = 15M'
+#  notify: apache-restart

@@ -1,0 +1,21 @@
+---
+- name: Load a variable file based on the OS type, or a default if not found.
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_version }}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+    - "default.yml"
+
+- import_tasks: install-with-package.yml
+  when: not certbot_install_from_source
+
+- include_tasks: create-cert-standalone.yml
+  when:
+    - certbot_create_if_missing
+    - certbot_create_method == 'standalone'
+  loop_control:
+    loop_var: vhost
+
+- import_tasks: renew-cron.yml
+  when: certbot_auto_renew

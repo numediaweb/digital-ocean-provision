@@ -1,0 +1,16 @@
+---
+- name: Install monit package
+  apt:
+    name: monit
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
+
+- include: config.yml
+  tags: monit_config
+
+- include: monitors.yml
+  tags: monit_monitors
+
+- include: service.yml
+  tags: monit_service

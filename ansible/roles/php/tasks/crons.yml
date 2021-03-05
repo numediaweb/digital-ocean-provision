@@ -1,0 +1,9 @@
+---
+- name: Create PHP cron jobs
+  cron:
+    name: "PHP Command scheduler"
+    job: "/usr/bin/php /var/www/{{item.projectFolder}}/current/bin/console scheduler:execute --env=prod --no-interaction"
+    user: "{{ master_user }}"
+    state : present
+  with_items: "{{droplet.vhosts}}"
+  when: item.cron is defined and item.cron == "scheduler"

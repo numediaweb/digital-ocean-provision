@@ -1,0 +1,23 @@
+---
+dbName            : '{{ droplet.mysql.databases | selectattr("name", "equalto", item.item.alias) | map(attribute="name") | list | first }}'
+dbUser            : '{{ droplet.mysql.users | selectattr("name", "equalto", item.item.alias) | map(attribute="name") | list | first }}'
+dbPass            : '{{ droplet.mysql.users | selectattr("name", "equalto", item.item.alias) | map(attribute="password") | list | first }}'
+tablePrefix       : 'wp_'
+
+wp_zip_dir           : "/var/www"
+
+master_user: "{{ config.digitalocean.master_user }}"
+master_user_group: "{{ config.digitalocean.master_user_group }}"
+
+wordpress_plugin_directory: "{{ item.item.directory }}/wordpress/wp-content/plugins"
+wordpress_theme_directory: "{{ item.item.directory }}/wordpress/wp-content/themes"
+
+wordpress_plugins:
+  - name: akismet
+  - name: google-authenticator
+  - name: wordfence
+  - name: wp-maintenance-mode
+  - name: simple-cache
+  - name: elementor
+
+wordpress_themes: []

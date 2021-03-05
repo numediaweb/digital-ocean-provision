@@ -1,0 +1,39 @@
+- name: Change root password
+  user:
+    name: "root"
+    password: "{{ config.digitalocean.master_user_password_encrypted }}"
+    shell: "/bin/bash"
+  become: yes
+
+- name: Setup Uncomplicated Firewall (ufw)
+  ufw: state=enabled policy=deny
+
+- name: Allow ssh traffic
+  ufw: rule=allow port={{ config.digitalocean.ssh.port }} proto=tcp
+
+- name: Allow unencrypted web servers traffic
+  ufw: rule=allow port=80 proto=tcp
+
+- name: Allow encrypted web servers traffic
+  ufw: rule=allow port=443 proto=tcp
+
+- name: Disallow password authentication
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^PasswordAuthentication"
+              line="PasswordAuthentication no"
+              state=present
+  notify: Restart ssh
+
+- name: Disallow root SSH access
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^PermitRootLogin"
+              line="PermitRootLogin no"
+              state=present
+  notify: Restart ssh
+
+- name: Change ssh default port
+  lineinfile: dest=/etc/ssh/sshd_config
+              regexp="^Port\s"
+              line="Port {{ config.digitalocean.ssh.port }}"
+              state=present
+  notify: Restart ssh

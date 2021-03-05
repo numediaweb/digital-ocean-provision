@@ -1,0 +1,11 @@
+digitalocean:
+    token: 12345abcd
+    master_user: foo # change to your username
+    master_user_password: "@PUT_A_SECURE_PASS_HERE@"
+    master_user_password_encrypted: "PUT_THE_ENCRYPTED_SECURE_PASS_HERE" # see: https://docs.ansible.com/ansible/latest/reference_appendices/faq.html#how-do-i-generate-encrypted-passwords-for-the-user-module
+    master_user_group: bar # change to your username group
+    public_keys:
+      - foo.pub
+    email_logs: logs@example.com
+    ssh:
+      port: 22

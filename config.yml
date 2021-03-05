@@ -1,0 +1,31 @@
+php_version: 7.4
+sync_type: "nfs"
+
+droplets: {}
+
+digitalocean:
+    token: xxxxxxxxxxxxx
+    public_keys:
+      - id_rsa.pub
+    master_user: foo
+    master_user_password: bar
+    master_user_group: baz
+    email_logs: logs@example.com
+
+vagrant:
+    ssh:
+        private_key_path: ~/.ssh/id_rsa
+
+ssl:
+    email: "info@example.com"
+
+jenkins:
+    hostname: 45.56.83.229
+    admin_username: admin
+    admin_password: "yJSQxvnD.H}Uux~7De=mCgA)#ZyA!R8"
+
+monit:
+    alert_addresses:
+        - numediaweb@gmail.com
+    mysql_username: "monit"
+    mysql_password: "monit"

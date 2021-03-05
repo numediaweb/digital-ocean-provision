@@ -1,0 +1,69 @@
+-
+    name: 'Create the directory to unzip worpress to'
+    file:
+        path: '{{item.directory}}/wordpress/'
+        state: directory
+        mode: 493
+    with_items: '{{droplet.vhosts}}'
+    when: 'item.isWp is defined and item.isWp'
+-
+    name: 'Check that the wordpress.zip exists'
+    stat:
+        path: '{{ wp_zip_dir }}/wordpress.zip'
+    register: wpIsDownloaded
+-
+    name: 'Download WordPress'
+    get_url:
+        url: 'https://wordpress.org/latest.zip'
+        dest: '{{ wp_zip_dir }}/wordpress.zip'
+    when: 'wpIsDownloaded.stat.exists == False'
+-
+    name: 'Check existing installs'
+    stat:
+        path: '/var/www/{{item.projectFolder}}/wordpress/wp-config.php'
+    register: wpExistingInstalls
+    with_items: '{{droplet.vhosts}}'
+
+#-
+#    debug:
+#        msg: "existing installs to_nice_json {{ wpExistingInstalls | to_nice_json }}"
+
+-
+    name: 'Unzip WordPress'
+    unarchive:
+        src: '{{ wp_zip_dir }}/wordpress.zip'
+        dest: '{{item.item.directory}}'
+        copy: no
+        owner: '{{ master_user }}'
+        group: '{{ master_user_group }}'
+    with_items: '{{ wpExistingInstalls.results }}'
+    when: 'item.item.isWp is defined and item.item.isWp and not item.stat.exists | default(false)'
+-
+    name: 'set wp-config.php'
+    template:
+        src: wp-config.php
+        dest: '{{ item.item.directory}}/wordpress/'
+        mode: 488
+        owner: '{{ master_user }}'
+        group: '{{ master_user_group }}'
+    with_items: '{{ wpExistingInstalls.results }}'
+    when: 'item.item.isWp is defined and item.item.isWp and not item.stat.exists | default(false)'
+-
+    name: 'Copy index to parent folder'
+    copy:
+        remote_src: true
+        src: '{{item.item.directory}}/wordpress/index.php'
+        dest: '{{item.item.directory}}/index.php'
+    with_items: '{{ wpExistingInstalls.results }}'
+    when: 'item.item.isWp is defined and item.item.isWp and not item.stat.exists | default(false)'
+-
+    name: 'Set index.php to child folder'
+    replace:
+        path: '{{item.item.directory}}/index.php'
+        regexp: wp-blog-header.php
+        replace: wordpress/wp-blog-header.php
+        backup: no
+    with_items: '{{ wpExistingInstalls.results }}'
+    when: 'item.item.isWp is defined and item.item.isWp and not item.stat.exists | default(false)'
+
+- import_tasks: cli.yml

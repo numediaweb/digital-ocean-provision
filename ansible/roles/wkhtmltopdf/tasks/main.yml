@@ -1,0 +1,29 @@
+---
+- name: Install xfonts (a prerequisite of wkhtmltopdf)
+  package:
+    name: "{{ xfonts_package_name }}"
+    state: present
+    update_cache: true
+  become: yes
+
+- name: Download wkhtmltopdf
+  get_url:
+   # These come from vars/{version}.yml
+    url: "{{ package_source }}"
+    dest: "{{ download_dest }}"
+    checksum: "{{ package_checksum }}"
+
+- name: Remove wkhtmltopdf
+  apt:
+    name: wkhtmltopdf
+    state: absent
+  become: yes
+
+
+- name: Install wkhtmltopdf
+  apt:
+    deb: "{{ download_dest }}"
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+  become: yes

@@ -1,0 +1,23 @@
+# tasks file for wp-cli
+- name: Check if wp-cli exists
+  stat: path="/usr/local/bin/wp"
+  register: wpcli_exist
+
+- name: Updating wp-cli
+  shell: "/usr/local/bin/wp cli update --yes"
+  when: wpcli_exist.stat.exists
+
+- name: Download wp-cli
+  get_url:
+    url="https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar"
+    dest="/tmp/"
+    force_basic_auth=yes
+    mode=0755
+  when: not wpcli_exist.stat.exists
+
+- name: Copy wp cli file
+  copy:
+    src: /tmp/wp-cli.phar
+    dest: /usr/local/bin/wp
+    mode: a+x
+  when: not wpcli_exist.stat.exists
